@@ -1,0 +1,146 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                     String   @id @default(cuid())
+  firstName              String
+  lastName               String
+  department             String
+  specialization         String   @default("Компьютерные науки")
+  university             String   @default("Университет им. М. Ауэзова (Шымкент)")
+  email                  String   @unique
+  passwordHash           String
+  cards                  Card[]
+  reviewsGiven           Review[] @relation("reviewer")
+  quizAttempts           QuizAttempt[]
+  diagnosticAttempts     DiagnosticAttempt[]
+  personalQuestions      Question[]
+  personalDiagnosticTasks DiagnosticTask[]
+  createdAt              DateTime @default(now())
+}
+
+model Day {
+  id      String   @id @default(cuid())
+  number  Int      @unique
+  modules Module[]
+}
+
+model Module {
+  id              String              @id @default(cuid())
+  day             Day                 @relation(fields: [dayId], references: [id])
+  dayId           String
+  order           Int
+  title           String
+  pdfUrl          String?
+  hasWizard       Boolean             @default(false) // карта занятия (Модуль 1)
+  hasTaskWizard   Boolean             @default(false) // комплект заданий (Модуль 2)
+  hasTutorWizard  Boolean             @default(false) // тьютор-промпт (Модуль 3)
+  cards           Card[]
+  questions       Question[]
+  attempts        QuizAttempt[]
+  diagnosticTasks DiagnosticTask[]
+  diagnosticAttempts DiagnosticAttempt[]
+
+  @@unique([dayId, order])
+}
+
+model Card {
+  id            String   @id @default(cuid())
+  user          User     @relation(fields: [userId], references: [id])
+  userId        String
+  module        Module   @relation(fields: [moduleId], references: [id])
+  moduleId      String
+  kind          String   @default("alignment_card") // "alignment_card" | "task_set"
+  contextJson   Json
+  draftJson     Json     // неизменный ИИ-черновик (для сравнения с правками человека)
+  cardJson      Json     // редактируемая версия
+  critiqueJson  Json?    // отзыв ИИ на правки человека (после «Проверь меня»)
+  status        String   @default("draft")
+  reviews       Review[]
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([userId, moduleId]) // одна работа на модуль — новая только после удаления старой
+}
+
+model Review {
+  id              String   @id @default(cuid())
+  card            Card     @relation(fields: [cardId], references: [id])
+  cardId          String
+  reviewer        User     @relation("reviewer", fields: [reviewerId], references: [id])
+  reviewerId      String
+  alignmentScore  Int
+  resilienceScore Int
+  defenseScore    Int?
+  alignmentNote   String?
+  resilienceNote  String?
+  defenseNote     String?
+  weakestLink     String?  // только для alignment_card: "outcome" | "assessment" | "activity" | "all_good"
+  createdAt       DateTime @default(now())
+
+  @@unique([cardId, reviewerId])
+}
+
+model Question {
+  id              String   @id @default(cuid())
+  module          Module   @relation(fields: [moduleId], references: [id])
+  moduleId        String
+  user            User?    @relation(fields: [userId], references: [id])
+  userId          String?  // null = общий банк (теория); задан = кейс, сгенерированный под специализацию пользователя
+  type            String   // "theory_closed" | "case_closed" | "case_open"
+  order           Int
+  prompt          String
+  options         Json?    // [{ id, text }] for closed questions
+  correctOptionId String?  // for closed questions
+  rubric          Json?    // string[] criteria for open questions
+  points          Int      @default(1)
+
+  @@unique([moduleId, userId, order])
+}
+
+model QuizAttempt {
+  id           String   @id @default(cuid())
+  user         User     @relation(fields: [userId], references: [id])
+  userId       String
+  module       Module   @relation(fields: [moduleId], references: [id])
+  moduleId     String
+  answersJson  Json
+  breakdownJson Json
+  scorePercent Float
+  status       String   @default("scored") // "scored" | "pending_review"
+  createdAt    DateTime @default(now())
+}
+
+model DiagnosticTask {
+  id        String  @id @default(cuid())
+  module    Module  @relation(fields: [moduleId], references: [id])
+  moduleId  String
+  user      User?   @relation(fields: [userId], references: [id])
+  userId    String? // null = общий сид (запасной вариант); задан = сгенерирован под специализацию пользователя
+  order     Int
+  level     String  // русский+англ. подпись уровня Блума, напр. "Анализ (Analyze)"
+  taskText  String
+  isBroken  Boolean // истина: заявлен уровень, который на деле списывается в один клик
+  fixRubric Json?   // string[] критериев, только когда isBroken = true
+
+  @@unique([moduleId, userId, order])
+}
+
+model DiagnosticAttempt {
+  id            String   @id @default(cuid())
+  user          User     @relation(fields: [userId], references: [id])
+  userId        String
+  module        Module   @relation(fields: [moduleId], references: [id])
+  moduleId      String
+  answersJson   Json
+  breakdownJson Json
+  scorePercent  Float
+  status        String   @default("scored") // "scored" | "pending_review"
+  createdAt     DateTime @default(now())
+}

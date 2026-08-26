@@ -1,0 +1,43 @@
+@import "tailwindcss";
+
+@theme {
+  --color-paper: #f5f2ec;
+  --color-ink: #14201b;
+  --color-forest: #0f5132;
+  --color-terracotta: #b4472a;
+  --color-mint: #e4ede6;
+  --color-clay: #f6e7e1;
+  --color-line: #d9d3c7;
+  --color-muted: #5c6b62;
+  --color-ink-caption: #8fb79c;
+  --color-ink-text: #c9d6cd;
+
+  --font-heading: var(--font-golos), "Golos Text", Georgia, serif;
+  --font-sans: var(--font-manrope), "Manrope", Arial, sans-serif;
+}
+
+* {
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+html {
+  background: var(--color-paper);
+}
+
+body {
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-heading);
+}
+
+.tap-target {
+  min-height: 44px;
+}
