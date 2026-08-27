@@ -54,7 +54,7 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
     const notebook = card.cardJson as unknown as NotebookCardJson;
     if (!canSubmitNotebookLog(notebook)) {
       return NextResponse.json(
-        { error: "Замените все плейсхолдеры и заполните, что получили от NotebookLM, по каждому промпту" },
+        { error: "Заполните, что получили от NotebookLM, по каждому промпту" },
         { status: 400 }
       );
     }

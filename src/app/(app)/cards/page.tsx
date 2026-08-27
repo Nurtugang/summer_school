@@ -15,7 +15,7 @@ export default async function MyCardsPage() {
     orderBy: { updatedAt: "desc" },
   });
 
-  const hasPortfolioEntries = cards.some((c) => c.kind === "notebook_log");
+  const hasPortfolioEntries = cards.some((c) => c.status === "submitted");
 
   return (
     <div className="flex flex-col gap-6">

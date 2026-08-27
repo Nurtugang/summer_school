@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button, ErrorText, Panel, Textarea } from "@/components/ui";
-import { remainingBracketPlaceholders, canSubmitNotebookLog, type NotebookCardJson } from "@/lib/notebookLog";
+import { canSubmitNotebookLog, type NotebookCardJson } from "@/lib/notebookLog";
 
 export function NotebookLogEditor({
   cardId,
@@ -143,50 +143,40 @@ export function NotebookLogEditor({
         </Panel>
       )}
 
-      {card.prompts.map((prompt, i) => {
-        const missing = remainingBracketPlaceholders(prompt.promptText);
-        return (
-          <div key={i} className="flex flex-col gap-3 border border-line bg-white/60 p-5">
-            <p className="text-[16px] font-heading font-semibold text-ink">{prompt.label}</p>
+      {card.prompts.map((prompt, i) => (
+        <div key={i} className="flex flex-col gap-3 border border-line bg-white/60 p-5">
+          <p className="text-[16px] font-heading font-semibold text-ink">{prompt.label}</p>
 
-            <div className="flex flex-col gap-2">
-              <p className="text-[13px] uppercase tracking-[.08em] text-muted">Промпт</p>
-              <Textarea
-                disabled={readOnly}
-                rows={10}
-                value={prompt.promptText}
-                onChange={(e) => updatePromptText(i, e.target.value)}
-                className="font-mono text-[13px]"
-              />
-              {!readOnly ? (
-                missing.length > 0 ? (
-                  <p className="text-[13px] text-terracotta">Осталось заменить: {missing.join(", ")}</p>
-                ) : (
-                  <p className="text-[13px] text-forest">Все плейсхолдеры заменены.</p>
-                )
-              ) : null}
-            </div>
-
-            {examples[i] ? (
-              <Panel className="flex flex-col gap-1.5 border-l-4 border-l-forest">
-                <p className="text-[12px] uppercase tracking-[.06em] text-muted">Пример заполнения</p>
-                <p className="whitespace-pre-wrap text-[13px] text-muted">{examples[i]}</p>
-              </Panel>
-            ) : null}
-
-            <div className="flex flex-col gap-2">
-              <p className="text-[13px] uppercase tracking-[.08em] text-muted">Что вы получили от NotebookLM?</p>
-              <Textarea
-                disabled={readOnly}
-                rows={8}
-                value={prompt.result}
-                onChange={(e) => updateResult(i, e.target.value)}
-                placeholder="Вставьте сюда ответ NotebookLM на этот промпт"
-              />
-            </div>
+          <div className="flex flex-col gap-2">
+            <p className="text-[13px] uppercase tracking-[.08em] text-muted">Промпт</p>
+            <Textarea
+              disabled={readOnly}
+              rows={10}
+              value={prompt.promptText}
+              onChange={(e) => updatePromptText(i, e.target.value)}
+              className="font-mono text-[13px]"
+            />
           </div>
-        );
-      })}
+
+          {examples[i] ? (
+            <Panel className="flex flex-col gap-1.5 border-l-4 border-l-forest">
+              <p className="text-[12px] uppercase tracking-[.06em] text-muted">Пример заполнения</p>
+              <p className="whitespace-pre-wrap text-[13px] text-muted">{examples[i]}</p>
+            </Panel>
+          ) : null}
+
+          <div className="flex flex-col gap-2">
+            <p className="text-[13px] uppercase tracking-[.08em] text-muted">Что вы получили от NotebookLM?</p>
+            <Textarea
+              disabled={readOnly}
+              rows={8}
+              value={prompt.result}
+              onChange={(e) => updateResult(i, e.target.value)}
+              placeholder="Вставьте сюда ответ NotebookLM на этот промпт"
+            />
+          </div>
+        </div>
+      ))}
 
       <ErrorText>{error}</ErrorText>
 
@@ -207,7 +197,7 @@ export function NotebookLogEditor({
       </div>
       {!readOnly && !canSubmit ? (
         <p className="text-[13px] text-muted">
-          Чтобы завершить: замените все плейсхолдеры и вставьте, что получили от NotebookLM, в каждый из промптов.
+          Чтобы завершить: вставьте, что получили от NotebookLM, в каждый из промптов.
         </p>
       ) : null}
     </div>
