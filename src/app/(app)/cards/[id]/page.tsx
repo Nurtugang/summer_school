@@ -9,6 +9,7 @@ import { TutorPromptEditor } from "@/components/TutorPromptEditor";
 import { normalizeTaskSet } from "@/lib/taskSetFlow";
 import type { TutorCardJson } from "@/lib/tutorPrompt";
 import type { CardCritique, TriadJson } from "@/lib/gemini";
+import { dayLabel } from "@/lib/dayLabel";
 
 export default async function CardPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -37,7 +38,7 @@ export default async function CardPage({ params }: { params: Promise<{ id: strin
       <Breadcrumbs
         items={[
           { label: "Главная", href: "/" },
-          { label: `День ${card.module.day.number}`, href: `/days/${card.module.day.number}` },
+          { label: dayLabel(card.module.day.number), href: `/days/${card.module.day.number}` },
           { label: card.module.title, href: `/modules/${card.module.id}` },
           { label: breadcrumbLabel },
         ]}

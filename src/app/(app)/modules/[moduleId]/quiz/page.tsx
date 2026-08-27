@@ -7,6 +7,7 @@ import { QuizRunner } from "@/components/QuizRunner";
 import { QuizBreakdown } from "@/components/QuizBreakdown";
 import { ensureQuestionsForUser, sanitizeQuestion, type BreakdownItem } from "@/lib/quiz";
 import { MAX_QUIZ_ATTEMPTS, QUIZ_MODULE_CONTEXT } from "@/lib/config";
+import { dayLabel } from "@/lib/dayLabel";
 
 export default async function QuizPage({ params }: { params: Promise<{ moduleId: string }> }) {
   const { moduleId } = await params;
@@ -45,7 +46,7 @@ export default async function QuizPage({ params }: { params: Promise<{ moduleId:
       <Breadcrumbs
         items={[
           { label: "Главная", href: "/" },
-          { label: `День ${moduleRecord.day.number}`, href: `/days/${moduleRecord.day.number}` },
+          { label: dayLabel(moduleRecord.day.number), href: `/days/${moduleRecord.day.number}` },
           { label: moduleRecord.title, href: `/modules/${moduleRecord.id}` },
           { label: "Тест" },
         ]}

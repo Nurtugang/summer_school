@@ -7,6 +7,7 @@ import { Button, Eyebrow } from "@/components/ui";
 import { ModuleProgress, type ModuleProgressRow } from "@/components/ModuleProgress";
 import { REVIEW_PROGRESS_TARGET } from "@/lib/config";
 import { titleForCard } from "@/lib/cardTitle";
+import { dayLabel } from "@/lib/dayLabel";
 
 export default async function ModulePage({ params }: { params: Promise<{ moduleId: string }> }) {
   const { moduleId } = await params;
@@ -176,7 +177,7 @@ export default async function ModulePage({ params }: { params: Promise<{ moduleI
       <Breadcrumbs
         items={[
           { label: "Главная", href: "/" },
-          { label: `День ${moduleRecord.day.number}`, href: `/days/${moduleRecord.day.number}` },
+          { label: dayLabel(moduleRecord.day.number), href: `/days/${moduleRecord.day.number}` },
           { label: `Модуль ${moduleRecord.order}` },
         ]}
       />

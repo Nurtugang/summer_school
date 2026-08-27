@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { Eyebrow } from "@/components/ui";
+import { dayLabel } from "@/lib/dayLabel";
 import { DiagnosticRunner } from "@/components/DiagnosticRunner";
 import { DiagnosticBreakdown } from "@/components/DiagnosticBreakdown";
 import { ensureDiagnosticTasksForUser, sanitizeDiagnosticTask, type DiagnosticBreakdownItem } from "@/lib/diagnostic";
@@ -36,7 +37,7 @@ export default async function DiagnosticPage({ params }: { params: Promise<{ mod
       <Breadcrumbs
         items={[
           { label: "Главная", href: "/" },
-          { label: `День ${moduleRecord.day.number}`, href: `/days/${moduleRecord.day.number}` },
+          { label: dayLabel(moduleRecord.day.number), href: `/days/${moduleRecord.day.number}` },
           { label: moduleRecord.title, href: `/modules/${moduleRecord.id}` },
           { label: "Диагностика резистентности" },
         ]}

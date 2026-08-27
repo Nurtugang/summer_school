@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { Eyebrow } from "@/components/ui";
+import { dayLabel } from "@/lib/dayLabel";
 
 export default async function DayPage({ params }: { params: Promise<{ day: string }> }) {
   const { day: dayParam } = await params;
@@ -17,10 +18,10 @@ export default async function DayPage({ params }: { params: Promise<{ day: strin
 
   return (
     <div className="flex flex-col gap-6">
-      <Breadcrumbs items={[{ label: "Главная", href: "/" }, { label: `День ${day.number}` }]} />
+      <Breadcrumbs items={[{ label: "Главная", href: "/" }, { label: dayLabel(day.number) }]} />
 
       <div>
-        <Eyebrow>День {day.number}</Eyebrow>
+        <Eyebrow>{dayLabel(day.number)}</Eyebrow>
         <h1 className="text-[32px] leading-tight font-heading font-bold text-ink">Модули</h1>
       </div>
 

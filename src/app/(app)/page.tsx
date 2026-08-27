@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { Eyebrow } from "@/components/ui";
+import { dayLabel } from "@/lib/dayLabel";
 
 export default async function HomePage() {
   const days = await prisma.day.findMany({
@@ -23,7 +24,7 @@ export default async function HomePage() {
             className="tap-target flex items-center justify-between border border-line bg-white/60 px-5 py-6 hover:border-forest"
           >
             <div>
-              <p className="text-[22px] font-heading font-semibold text-ink">День {day.number}</p>
+              <p className="text-[22px] font-heading font-semibold text-ink">{dayLabel(day.number)}</p>
               <p className="mt-1 text-[15px] text-muted">
                 {day._count.modules > 0
                   ? `Модулей: ${day._count.modules}`

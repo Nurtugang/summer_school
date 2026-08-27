@@ -30,6 +30,12 @@ async function seedQuestions(moduleId: string, questions: SeedQuestion[]) {
 }
 
 async function main() {
+  await prisma.day.upsert({
+    where: { number: 26 },
+    update: {},
+    create: { number: 26 },
+  });
+
   const day27 = await prisma.day.upsert({
     where: { number: 27 },
     update: {},

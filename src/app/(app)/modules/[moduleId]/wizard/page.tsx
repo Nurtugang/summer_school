@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { Eyebrow } from "@/components/ui";
 import { Wizard } from "@/components/Wizard";
+import { dayLabel } from "@/lib/dayLabel";
 
 export default async function WizardPage({ params }: { params: Promise<{ moduleId: string }> }) {
   const { moduleId } = await params;
@@ -18,7 +19,7 @@ export default async function WizardPage({ params }: { params: Promise<{ moduleI
       <Breadcrumbs
         items={[
           { label: "Главная", href: "/" },
-          { label: `День ${moduleRecord.day.number}`, href: `/days/${moduleRecord.day.number}` },
+          { label: dayLabel(moduleRecord.day.number), href: `/days/${moduleRecord.day.number}` },
           { label: moduleRecord.title, href: `/modules/${moduleRecord.id}` },
           { label: "Новая карта" },
         ]}
