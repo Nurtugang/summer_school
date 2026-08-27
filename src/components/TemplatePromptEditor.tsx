@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button, ErrorText, Panel, Textarea } from "@/components/ui";
+import { MarkdownResult } from "@/components/MarkdownResult";
 import { remainingPlaceholdersIn, canSubmitTemplatePrompt, type TemplateCardJson } from "@/lib/templatePrompt";
 import { UPLOAD_MAX_FILES } from "@/lib/config";
 
@@ -290,7 +291,7 @@ export function TemplatePromptEditor({
       {card.result ? (
         <Panel className="flex flex-col gap-2 border-l-4 border-l-forest">
           <p className="text-[12px] uppercase tracking-[.08em] text-muted">{resultLabel}</p>
-          <p className="whitespace-pre-wrap text-[14px] text-ink">{card.result}</p>
+          <MarkdownResult text={card.result} />
         </Panel>
       ) : null}
 

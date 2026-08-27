@@ -720,10 +720,21 @@ export async function generatePentagramResult(promptText: string, materials: Wiz
   return response.text ?? "";
 }
 
+const TUTOR_DEMO_META_PROMPT = `Ниже дана инструкция для ИИ-тьютора (system-промпт, по которому в реальности будет идти живой
+диалог со студентом). Сейчас твоя задача — НЕ быть этим тьютором в живом диалоге, а самому
+сыграть короткий ПРИМЕР демонстрационного диалога целиком: сгенерируй 4-6 реплик тьютора и
+правдоподобные реплики гипотетического студента, показывающие, как тьютор ведёт себя, строго
+следуя инструкции ниже — особенно то, что он не даёт готовых ответов, а ведёт вопросами, дробит
+тему, подстраивается под ответы. Заверши диалог примером «входного билета» так, как описано в
+инструкции.
+
+Пиши реплики поочерёдно, каждую с новой строки, с пометкой «Тьютор:» или «Студент:» перед ней.
+Пиши на языке, указанном в инструкции ниже.`;
+
 /**
- * М3: промпт — это system-инструкция для тьютора. Синтетическая реплика «Здравствуйте!»
- * нужна только чтобы вызвать первый ход тьютора (по шаблону он должен представиться и
- * спросить, а не отвечать) — это не диалог, дальше ничего не продолжается.
+ * М3: чтобы за один вызов получить законченный результат (а не только первую реплику,
+ * с которой пришлось бы дальше вести живой диалог), просим Gemini сыграть короткий пример
+ * диалога целиком — за тьютора и за гипотетического студента — по инструкции преподавателя.
  */
 export async function generateTutorOpening(promptText: string, materials: WizardMaterial[]): Promise<string> {
   const apiKey = process.env.GEMINI_API_KEY;
@@ -731,15 +742,17 @@ export async function generateTutorOpening(promptText: string, materials: Wizard
     throw new Error("GEMINI_API_KEY не задан");
   }
 
-  const systemPrompt = [promptText, materialsContext(materials)].join("\n");
+  const prompt = [
+    TUTOR_DEMO_META_PROMPT,
+    "\n=== Инструкция для тьютора (промпт преподавателя) ===",
+    promptText,
+    materialsContext(materials),
+  ].join("\n");
 
   const response = await generateContentWithProxyRotation(apiKey, {
     model: GEMINI_MODEL,
-    contents: [{ role: "user", parts: [{ text: "Здравствуйте!" }] }],
-    config: {
-      systemInstruction: systemPrompt,
-      temperature: 0.7,
-    },
+    contents: prompt,
+    config: { temperature: 0.7 },
   });
 
   return response.text ?? "";
