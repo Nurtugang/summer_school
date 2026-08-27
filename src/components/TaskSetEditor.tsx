@@ -7,10 +7,26 @@ import { changedOrRespondedToPrompt, canSubmitTaskSet, pentagramFieldsFilled, ta
 import type { TaskSetJson } from "@/lib/gemini";
 
 const PENTAGRAM_FIELDS: { key: keyof TaskSetJson["pentagram"]; label: string; hint?: string }[] = [
-  { key: "persona", label: "Роль ИИ (Persona)" },
-  { key: "context", label: "Контекст: дисциплина и студенты (Context)" },
-  { key: "task", label: "Задача (Task)" },
-  { key: "output", label: "Формат ответа (Output)" },
+  {
+    key: "persona",
+    label: "Роль ИИ (Persona)",
+    hint: "Кем должен представиться ИИ, придумывая задания — например, «строгий методист по вашей дисциплине»",
+  },
+  {
+    key: "context",
+    label: "Контекст: дисциплина и студенты (Context)",
+    hint: "Дисциплина, тема, курс и уровень студентов — рамка, под которую ИИ подберёт задания",
+  },
+  {
+    key: "task",
+    label: "Задача (Task)",
+    hint: "Что именно должен придумать ИИ — какие 6 заданий по уровням Блума (Запоминание → Создание)",
+  },
+  {
+    key: "output",
+    label: "Формат ответа (Output)",
+    hint: "В каком виде должен прийти каждый ответ — например, «текст задания в 2-3 предложения»",
+  },
   {
     key: "constraint",
     label: "Ограничения (Constraint)",

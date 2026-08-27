@@ -3,7 +3,12 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button, ErrorText, Panel, Textarea } from "@/components/ui";
-import { remainingPlaceholders, canSubmitTutorPrompt, type TutorCardJson } from "@/lib/tutorPrompt";
+import {
+  remainingPlaceholders,
+  canSubmitTutorPrompt,
+  TUTOR_PLACEHOLDER_HINTS,
+  type TutorCardJson,
+} from "@/lib/tutorPrompt";
 
 export function TutorPromptEditor({
   cardId,
@@ -145,10 +150,30 @@ export function TutorPromptEditor({
         <Panel className="bg-mint">
           <p className="text-[15px] text-ink">Задание завершено. Промпт готов к передаче студентам.</p>
         </Panel>
-      ) : null}
+      ) : (
+        <Panel className="bg-mint">
+          <p className="text-[15px] text-ink">
+            Замените плейсхолдеры в тексте ниже под своё занятие, затем проверьте тьютора в чате —
+            напишите пару реплик за студента, чтобы убедиться, что тьютор ведёт вопросами, а не
+            выдаёт готовые ответы.
+          </p>
+        </Panel>
+      )}
 
       <div className="flex flex-col gap-2">
         <p className="text-[13px] uppercase tracking-[.08em] text-muted">Промпт тьютора</p>
+        {!readOnly && missing.length > 0 ? (
+          <Panel className="flex flex-col gap-1.5 border-l-4 border-l-terracotta">
+            <p className="text-[12px] uppercase tracking-[.06em] text-muted">Что вписать вместо плейсхолдеров</p>
+            <ul className="flex flex-col gap-1">
+              {missing.map((p) => (
+                <li key={p} className="text-[14px] text-ink">
+                  <span className="font-mono text-terracotta">{p}</span> — {TUTOR_PLACEHOLDER_HINTS[p]}
+                </li>
+              ))}
+            </ul>
+          </Panel>
+        ) : null}
         <Textarea
           disabled={readOnly}
           rows={16}
@@ -156,14 +181,8 @@ export function TutorPromptEditor({
           onChange={(e) => updatePromptText(e.target.value)}
           className="font-mono text-[14px]"
         />
-        {!readOnly ? (
-          missing.length > 0 ? (
-            <p className="text-[13px] text-terracotta">
-              Осталось заменить: {missing.join(", ")}
-            </p>
-          ) : (
-            <p className="text-[13px] text-forest">Все плейсхолдеры заменены.</p>
-          )
+        {!readOnly && missing.length === 0 ? (
+          <p className="text-[13px] text-forest">Все плейсхолдеры заменены.</p>
         ) : null}
       </div>
 
