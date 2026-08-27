@@ -50,7 +50,7 @@ export function QuizRunner({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ answers }),
       });
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
       if (!res.ok) {
         setError(data.error ?? "Не удалось отправить тест");
         return;
@@ -58,6 +58,10 @@ export function QuizRunner({
       setResult(data);
       setAttemptsRemaining(data.attemptsRemaining);
       router.refresh();
+    } catch {
+      setError(
+        "Не удалось получить ответ — проверка открытых вопросов заняла слишком много времени. Обновите страницу: попытка почти наверняка уже засчиталась, просто не успела показать результат."
+      );
     } finally {
       setSubmitting(false);
     }

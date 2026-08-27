@@ -75,13 +75,15 @@ export function TutorPromptEditor({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message }),
       });
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
       if (!res.ok) {
         setError(data.error ?? "Не удалось получить ответ от тьютора");
         return;
       }
       setCard((c) => ({ ...c, transcript: data.transcript }));
       setMessage("");
+    } catch {
+      setError("Не удалось получить ответ от Gemini. Попробуйте ещё раз.");
     } finally {
       setSending(false);
     }

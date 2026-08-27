@@ -86,56 +86,56 @@ export async function scoreAttempt(
   questions: QuestionRow[],
   answers: Record<string, string>
 ): Promise<AttemptResult> {
-  const breakdown: BreakdownItem[] = [];
+  // Открытые вопросы оцениваются параллельно (не по одному) — иначе на несколько
+  // последовательных вызовов Gemini суммарное время запроса легко превышает таймаут nginx.
+  const breakdown: BreakdownItem[] = await Promise.all(
+    questions.map(async (q): Promise<BreakdownItem> => {
+      const type = q.type as QuestionType;
+      const answer = answers[q.id] ?? "";
 
-  for (const q of questions) {
-    const type = q.type as QuestionType;
-    const answer = answers[q.id] ?? "";
+      if (type === "theory_closed" || type === "case_closed") {
+        const correct = answer !== "" && answer === q.correctOptionId;
+        return {
+          questionId: q.id,
+          type,
+          prompt: q.prompt,
+          pointsMax: q.points,
+          pointsEarned: correct ? q.points : 0,
+          status: "graded",
+          selectedOptionId: answer || null,
+          correctOptionId: q.correctOptionId,
+          correct,
+        };
+      }
 
-    if (type === "theory_closed" || type === "case_closed") {
-      const correct = answer !== "" && answer === q.correctOptionId;
-      breakdown.push({
+      // case_open
+      const rubric = (q.rubric as string[] | null) ?? [];
+      const graded = await gradeOpenQuestionWithRetry(q.prompt, rubric, answer);
+
+      if (!graded) {
+        return {
+          questionId: q.id,
+          type,
+          prompt: q.prompt,
+          pointsMax: q.points,
+          pointsEarned: null,
+          status: "pending_review",
+          studentAnswer: answer,
+        };
+      }
+
+      return {
         questionId: q.id,
         type,
         prompt: q.prompt,
         pointsMax: q.points,
-        pointsEarned: correct ? q.points : 0,
+        pointsEarned: graded.earned,
         status: "graded",
-        selectedOptionId: answer || null,
-        correctOptionId: q.correctOptionId,
-        correct,
-      });
-      continue;
-    }
-
-    // case_open
-    const rubric = (q.rubric as string[] | null) ?? [];
-    const graded = await gradeOpenQuestionWithRetry(q.prompt, rubric, answer);
-
-    if (!graded) {
-      breakdown.push({
-        questionId: q.id,
-        type,
-        prompt: q.prompt,
-        pointsMax: q.points,
-        pointsEarned: null,
-        status: "pending_review",
         studentAnswer: answer,
-      });
-      continue;
-    }
-
-    breakdown.push({
-      questionId: q.id,
-      type,
-      prompt: q.prompt,
-      pointsMax: q.points,
-      pointsEarned: graded.earned,
-      status: "graded",
-      studentAnswer: answer,
-      rubricResults: graded.rubricResults,
-    });
-  }
+        rubricResults: graded.rubricResults,
+      };
+    })
+  );
 
   const gradedItems = breakdown.filter((b) => b.status === "graded");
   const maxPoints = gradedItems.reduce((sum, b) => sum + b.pointsMax, 0);

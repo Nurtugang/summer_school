@@ -69,7 +69,7 @@ export function DiagnosticRunner({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ answers: payload }),
       });
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
       if (!res.ok) {
         setError(data.error ?? "Не удалось отправить попытку");
         return;
@@ -77,6 +77,10 @@ export function DiagnosticRunner({
       setResult(data);
       setAttemptsRemaining(data.attemptsRemaining);
       router.refresh();
+    } catch {
+      setError(
+        "Не удалось получить ответ — проверка заняла слишком много времени. Обновите страницу: попытка почти наверняка уже засчиталась, просто не успела показать результат."
+      );
     } finally {
       setSubmitting(false);
     }

@@ -105,12 +105,14 @@ export function TriadEditor({
     setPaletteError(null);
     try {
       const res = await fetch(`/api/cards/${cardId}/palette`, { method: "POST" });
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
       if (!res.ok) {
         setPaletteError(data.error ?? "Не удалось получить палитру");
         return;
       }
       setPalette(data.palette);
+    } catch {
+      setPaletteError("Не удалось получить ответ от Gemini. Попробуйте ещё раз.");
     } finally {
       setPaletteLoading(false);
     }
@@ -125,7 +127,7 @@ export function TriadEditor({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ outcome: triad.outcome, assessment: triad.assessment, activity: triad.activity }),
       });
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
       if (!res.ok) {
         setCheckError(data.error ?? "Не удалось получить проверку");
         return;
@@ -138,6 +140,8 @@ export function TriadEditor({
       }));
       setLocalCritique(null);
       setReactionUnavailable(false);
+    } catch {
+      setCheckError("Не удалось получить ответ от Gemini. Попробуйте ещё раз.");
     } finally {
       setChecking(false);
     }
@@ -148,7 +152,7 @@ export function TriadEditor({
     setReactionUnavailable(false);
     try {
       const res = await fetch(`/api/cards/${cardId}/critique`, { method: "POST" });
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
       if (!res.ok) {
         setCheckError(data.error ?? "Не удалось получить реакцию");
         return;
@@ -158,6 +162,8 @@ export function TriadEditor({
         return;
       }
       setLocalCritique(data.critique);
+    } catch {
+      setReactionUnavailable(true);
     } finally {
       setReacting(false);
     }

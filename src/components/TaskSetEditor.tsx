@@ -122,7 +122,7 @@ export function TaskSetEditor({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(taskSet.pentagram),
       });
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
       if (!res.ok) {
         setError(data.error ?? "Не удалось проверить промпт");
         return;
@@ -133,6 +133,8 @@ export function TaskSetEditor({
         promptCheckedSnapshot: data.checkedSnapshot,
         promptResponses: data.responses,
       }));
+    } catch {
+      setError("Не удалось получить ответ от Gemini. Попробуйте ещё раз.");
     } finally {
       setChecking(false);
     }
@@ -143,13 +145,15 @@ export function TaskSetEditor({
     setError(null);
     try {
       const res = await fetch(`/api/cards/${cardId}/generate-tasks`, { method: "POST" });
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
       if (!res.ok) {
         setError(data.error ?? "Не удалось сгенерировать задания");
         return;
       }
       setTaskSet((t) => ({ ...t, rows: data.rows, flags: data.flags, recheckFlags: null, generated: true }));
       router.refresh();
+    } catch {
+      setError("Не удалось получить ответ от Gemini — генерация заняла слишком много времени. Попробуйте ещё раз.");
     } finally {
       setGenerating(false);
     }
@@ -160,7 +164,7 @@ export function TaskSetEditor({
     setRecheckUnavailable(false);
     try {
       const res = await fetch(`/api/cards/${cardId}/recheck-tasks`, { method: "POST" });
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
       if (!res.ok) {
         setError(data.error ?? "Не удалось перепроверить");
         return;
@@ -170,6 +174,8 @@ export function TaskSetEditor({
         return;
       }
       setTaskSet((t) => ({ ...t, recheckFlags: data.recheckFlags }));
+    } catch {
+      setRecheckUnavailable(true);
     } finally {
       setRechecking(false);
     }

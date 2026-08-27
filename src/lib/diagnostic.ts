@@ -69,71 +69,81 @@ export async function scoreDiagnosticAttempt(
   tasks: DiagnosticTaskRow[],
   answers: Record<string, DiagnosticAnswer>
 ): Promise<DiagnosticAttemptResult> {
-  const breakdown: DiagnosticBreakdownItem[] = [];
+  // Задания оцениваются параллельно (не по одному) — иначе на несколько последовательных
+  // вызовов Gemini суммарное время запроса легко превышает таймаут nginx.
+  const perTask = await Promise.all(
+    tasks.map(async (task): Promise<DiagnosticBreakdownItem[]> => {
+      const answer = answers[task.id] ?? { markedBroken: false };
+      const correct = answer.markedBroken === task.isBroken;
 
-  for (const task of tasks) {
-    const answer = answers[task.id] ?? { markedBroken: false };
-    const correct = answer.markedBroken === task.isBroken;
-
-    breakdown.push({
-      taskId: task.id,
-      kind: "identification",
-      level: task.level,
-      taskText: task.taskText,
-      pointsMax: 1,
-      pointsEarned: correct ? 1 : 0,
-      status: "graded",
-      isBrokenTruth: task.isBroken,
-      markedBroken: answer.markedBroken,
-      correct,
-    });
-
-    if (!task.isBroken) continue;
-
-    const rubric = (task.fixRubric as string[] | null) ?? [];
-    const fixText = (answer.fixText ?? "").trim();
-
-    if (!answer.markedBroken || !fixText) {
-      breakdown.push({
+      const identification: DiagnosticBreakdownItem = {
         taskId: task.id,
-        kind: "fix",
+        kind: "identification",
         level: task.level,
         taskText: task.taskText,
-        pointsMax: rubric.length,
-        pointsEarned: 0,
+        pointsMax: 1,
+        pointsEarned: correct ? 1 : 0,
         status: "graded",
-        fixText,
-      });
-      continue;
-    }
+        isBrokenTruth: task.isBroken,
+        markedBroken: answer.markedBroken,
+        correct,
+      };
 
-    const graded = await gradeFixWithRetry(task.taskText, rubric, fixText);
-    if (!graded) {
-      breakdown.push({
-        taskId: task.id,
-        kind: "fix",
-        level: task.level,
-        taskText: task.taskText,
-        pointsMax: rubric.length,
-        pointsEarned: null,
-        status: "pending_review",
-        fixText,
-      });
-      continue;
-    }
+      if (!task.isBroken) return [identification];
 
-    breakdown.push({
-      taskId: task.id,
-      kind: "fix",
-      level: task.level,
-      taskText: task.taskText,
-      pointsMax: rubric.length,
-      pointsEarned: graded.earned,
-      status: "graded",
-      fixText,
-      rubricResults: graded.results,
-    });
-  }
+      const rubric = (task.fixRubric as string[] | null) ?? [];
+      const fixText = (answer.fixText ?? "").trim();
+
+      if (!answer.markedBroken || !fixText) {
+        return [
+          identification,
+          {
+            taskId: task.id,
+            kind: "fix",
+            level: task.level,
+            taskText: task.taskText,
+            pointsMax: rubric.length,
+            pointsEarned: 0,
+            status: "graded",
+            fixText,
+          },
+        ];
+      }
+
+      const graded = await gradeFixWithRetry(task.taskText, rubric, fixText);
+      if (!graded) {
+        return [
+          identification,
+          {
+            taskId: task.id,
+            kind: "fix",
+            level: task.level,
+            taskText: task.taskText,
+            pointsMax: rubric.length,
+            pointsEarned: null,
+            status: "pending_review",
+            fixText,
+          },
+        ];
+      }
+
+      return [
+        identification,
+        {
+          taskId: task.id,
+          kind: "fix",
+          level: task.level,
+          taskText: task.taskText,
+          pointsMax: rubric.length,
+          pointsEarned: graded.earned,
+          status: "graded",
+          fixText,
+          rubricResults: graded.results,
+        },
+      ];
+    })
+  );
+  const breakdown = perTask.flat();
 
   const gradedItems = breakdown.filter((b) => b.status === "graded");
   const maxPoints = gradedItems.reduce((sum, b) => sum + b.pointsMax, 0);
