@@ -64,6 +64,7 @@ export default async function ModulePage({ params }: { params: Promise<{ moduleI
   const existingAlignmentCard = myCards.find((c) => c.kind === "alignment_card");
   const existingTaskSet = myCards.find((c) => c.kind === "task_set");
   const existingTutorPrompt = myCards.find((c) => c.kind === "tutor_prompt");
+  const existingPentagramPrompt = myCards.find((c) => c.kind === "pentagram_prompt");
 
   const assignments: Assignment[] = [];
   if (questionCount > 0) {
@@ -91,7 +92,7 @@ export default async function ModulePage({ params }: { params: Promise<{ moduleI
           }
     );
   }
-  if (diagnosticTaskCount > 0) {
+  if (diagnosticTaskCount > 0 && moduleRecord.hasDiagnostic) {
     assignments.push({
       title: "Диагностика резистентности",
       description: "Найдите задания, которые списываются в ИИ в один клик, и объясните, как их починить.",
@@ -127,9 +128,26 @@ export default async function ModulePage({ params }: { params: Promise<{ moduleI
           }
         : {
             title: "Тьютор для домашней подготовки",
-            description: "Готовый шаблон промпта → вы правите плейсхолдеры → один раз проверяете тьютора в живом чате.",
+            description: "Готовый шаблон промпта → вы правите плейсхолдеры → один раз проверяете его в Gemini.",
             href: `/modules/${moduleRecord.id}/tutor-wizard`,
             buttonLabel: "Создать тьютор-промпт",
+          }
+    );
+  }
+  if (moduleRecord.hasPentagramWizard) {
+    assignments.push(
+      existingPentagramPrompt
+        ? {
+            title: "Pentagram-тренажёр",
+            description: "Работа уже создана. Удалите её на странице работы, чтобы начать заново.",
+            href: `/cards/${existingPentagramPrompt.id}`,
+            buttonLabel: "Открыть работу",
+          }
+        : {
+            title: "Pentagram-тренажёр",
+            description: "Готовый шаблон Pentagram-промпта → вы правите плейсхолдеры → один раз запускаете его в Gemini и получаете 6 заданий.",
+            href: `/modules/${moduleRecord.id}/pentagram-wizard`,
+            buttonLabel: "Создать Pentagram-промпт",
           }
     );
   }
@@ -142,28 +160,31 @@ export default async function ModulePage({ params }: { params: Promise<{ moduleI
       valueLabel: quizPercent !== null ? `${quizPercent.toFixed(0)}%` : "не начат",
     });
   }
-  if (diagnosticTaskCount > 0) {
+  if (diagnosticTaskCount > 0 && moduleRecord.hasDiagnostic) {
     progressRows.push({
       label: "Диагностика",
       fillPercent: diagnosticPercent ?? 0,
       valueLabel: diagnosticPercent !== null ? `${diagnosticPercent.toFixed(0)}%` : "не начата",
     });
   }
-  if (moduleRecord.hasWizard || moduleRecord.hasTaskWizard || moduleRecord.hasTutorWizard) {
+  const noReviewKind = moduleRecord.hasTutorWizard || moduleRecord.hasPentagramWizard;
+  if (moduleRecord.hasWizard || moduleRecord.hasTaskWizard || moduleRecord.hasPentagramWizard || moduleRecord.hasTutorWizard) {
     const cardFill = cardStatus === "submitted" ? 100 : cardStatus === "draft" ? 50 : 0;
-    const doneLabel = moduleRecord.hasTutorWizard ? "готово" : "отправлена";
+    const doneLabel = noReviewKind ? "готово" : "отправлена";
     const cardLabel = cardStatus === "submitted" ? doneLabel : cardStatus === "draft" ? "черновик" : "не начата";
     const cardLabelTitle = moduleRecord.hasTaskWizard
       ? "Комплект заданий"
-      : moduleRecord.hasTutorWizard
-        ? "Тьютор"
-        : "Карта";
+      : moduleRecord.hasPentagramWizard
+        ? "Pentagram-тренажёр"
+        : moduleRecord.hasTutorWizard
+          ? "Тьютор"
+          : "Карта";
     progressRows.push({
       label: cardLabelTitle,
       fillPercent: cardFill,
       valueLabel: cardLabel,
     });
-    if (!moduleRecord.hasTutorWizard) {
+    if (!noReviewKind) {
       progressRows.push({
         label: "Рецензии",
         fillPercent: (Math.min(reviewCount, REVIEW_PROGRESS_TARGET) / REVIEW_PROGRESS_TARGET) * 100,

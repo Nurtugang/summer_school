@@ -35,7 +35,7 @@ export async function POST(req: Request) {
   }
 
   const existing = await prisma.card.findUnique({
-    where: { userId_moduleId: { userId: session.user.id, moduleId: moduleRecord.id } },
+    where: { userId_moduleId_kind: { userId: session.user.id, moduleId: moduleRecord.id, kind: "task_set" } },
   });
   if (existing) {
     return NextResponse.json(

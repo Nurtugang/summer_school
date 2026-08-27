@@ -1,4 +1,4 @@
-import type { TutorTurn } from "@/lib/gemini";
+import { remainingPlaceholdersIn, canSubmitTemplatePrompt, type TemplateCardJson } from "@/lib/templatePrompt";
 
 export const TUTOR_PLACEHOLDERS = [
   "[ТЕМА]",
@@ -44,15 +44,12 @@ export const TUTOR_PROMPT_TEMPLATE = `Ты — ИИ-тьютор. Помогае
 
 Язык диалога — [ЯЗЫК].`;
 
-export interface TutorCardJson {
-  promptText: string;
-  transcript: TutorTurn[];
-}
+export type TutorCardJson = TemplateCardJson;
 
 export function remainingPlaceholders(text: string): string[] {
-  return TUTOR_PLACEHOLDERS.filter((p) => text.includes(p));
+  return remainingPlaceholdersIn(text, TUTOR_PLACEHOLDERS);
 }
 
 export function canSubmitTutorPrompt(card: TutorCardJson): boolean {
-  return remainingPlaceholders(card.promptText).length === 0 && card.transcript.some((t) => t.role === "user");
+  return canSubmitTemplatePrompt(card, TUTOR_PLACEHOLDERS);
 }

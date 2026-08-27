@@ -5,6 +5,7 @@ import type { TriadJson } from "@/lib/gemini";
 import { canSubmitTriad, triadFieldsFilled } from "@/lib/triad";
 import { canSubmitTaskSet, normalizeTaskSet } from "@/lib/taskSetFlow";
 import { canSubmitTutorPrompt, type TutorCardJson } from "@/lib/tutorPrompt";
+import { canSubmitPentagramPrompt, type PentagramCardJson } from "@/lib/pentagramPrompt";
 
 export async function POST(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -36,7 +37,15 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
     const tutor = card.cardJson as unknown as TutorCardJson;
     if (!canSubmitTutorPrompt(tutor)) {
       return NextResponse.json(
-        { error: "Замените все плейсхолдеры и хотя бы раз проверьте тьютора в чате" },
+        { error: "Замените все плейсхолдеры и хотя бы раз нажмите «Проверить»" },
+        { status: 400 }
+      );
+    }
+  } else if (card.kind === "pentagram_prompt") {
+    const pentagram = card.cardJson as unknown as PentagramCardJson;
+    if (!canSubmitPentagramPrompt(pentagram)) {
+      return NextResponse.json(
+        { error: "Замените все плейсхолдеры и хотя бы раз нажмите «Сгенерировать»" },
         { status: 400 }
       );
     }

@@ -61,7 +61,9 @@ async function main() {
       title: "Таксономия Блума и активное обучение",
       pdfUrl: "/presentations/module-2.pdf",
       hasWizard: false,
-      hasTaskWizard: true,
+      hasTaskWizard: false, // старый «Комплект заданий» — временно скрыт, включается из /admin
+      hasPentagramWizard: true, // новый Pentagram-тренажёр — на его месте
+      hasDiagnostic: false, // диагностика резистентности — временно скрыта, включается из /admin
     },
     {
       order: 3,
@@ -82,6 +84,8 @@ async function main() {
         pdfUrl: m.pdfUrl,
         hasWizard: m.hasWizard,
         hasTaskWizard: m.hasTaskWizard,
+        hasPentagramWizard: m.hasPentagramWizard ?? false,
+        hasDiagnostic: m.hasDiagnostic ?? true,
         hasTutorWizard: m.hasTutorWizard ?? false,
       },
       create: { ...m, dayId: day27.id },

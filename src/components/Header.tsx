@@ -1,8 +1,10 @@
 import Link from "next/link";
 import { auth, signOut } from "@/lib/auth";
+import { isAdminEmail } from "@/lib/isAdmin";
 
 export async function Header() {
   const session = await auth();
+  const admin = isAdminEmail(session?.user?.email);
 
   return (
     <header className="sticky top-0 z-10 border-b border-line bg-paper">
@@ -25,6 +27,11 @@ export async function Header() {
               <Link href="/rating" className="tap-target flex items-center text-[14px] text-muted hover:text-forest">
                 Рейтинг
               </Link>
+              {admin ? (
+                <Link href="/admin" className="tap-target flex items-center text-[14px] text-muted hover:text-forest">
+                  Админка
+                </Link>
+              ) : null}
             </nav>
             <Link href="/profile" className="tap-target hidden items-center text-[14px] text-muted hover:text-forest sm:flex">
               {session.user.name}

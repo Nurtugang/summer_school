@@ -37,6 +37,11 @@ export function QuizBreakdown({
               <p className="text-[14px] text-terracotta">На ручную проверку</p>
             ) : (
               <div className="flex flex-col gap-1.5">
+                {item.studentAnswer ? (
+                  <p className="border border-line bg-white/60 px-3 py-2 text-[14px] text-ink">
+                    {item.studentAnswer}
+                  </p>
+                ) : null}
                 <p className="text-[14px] text-muted">
                   Баллы: {item.pointsEarned} из {item.pointsMax}
                 </p>

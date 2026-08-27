@@ -3,12 +3,24 @@ import { z } from "zod";
 import type { Prisma } from "@prisma/client";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { tutorReply } from "@/lib/gemini";
-import type { TutorCardJson } from "@/lib/tutorPrompt";
+import { generatePentagramResult, GeminiResponseError } from "@/lib/gemini";
+import type { PentagramCardJson } from "@/lib/pentagramPrompt";
+import { remainingPentagramPlaceholders } from "@/lib/pentagramPrompt";
 
+const fileSchema = z.object({ fileName: z.string(), text: z.string() });
 const schema = z.object({
-  message: z.string().min(1),
+  promptText: z.string().min(1),
+  files: z.array(fileSchema).max(3),
 });
+
+async function withRetry<T>(fn: () => Promise<T>): Promise<T> {
+  try {
+    return await fn();
+  } catch (err) {
+    if (err instanceof GeminiResponseError) return await fn();
+    throw err;
+  }
+}
 
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -18,7 +30,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   }
 
   const card = await prisma.card.findUnique({ where: { id } });
-  if (!card || card.userId !== session.user.id || card.kind !== "tutor_prompt") {
+  if (!card || card.userId !== session.user.id || card.kind !== "pentagram_prompt") {
     return NextResponse.json({ error: "Задание не найдено" }, { status: 404 });
   }
   if (card.status !== "draft") {
@@ -30,14 +42,14 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   if (!parsed.success) {
     return NextResponse.json({ error: "Некорректные данные" }, { status: 400 });
   }
+  if (remainingPentagramPlaceholders(parsed.data.promptText).length > 0) {
+    return NextResponse.json({ error: "Замените все плейсхолдеры перед генерацией" }, { status: 400 });
+  }
 
-  const current = card.cardJson as unknown as TutorCardJson;
-  const history = [...current.transcript, { role: "user" as const, text: parsed.data.message }];
-
-  let replyText: string;
+  let result: string;
   try {
-    replyText = await tutorReply(current.promptText, history);
-    if (!replyText.trim()) throw new Error("empty reply");
+    result = await withRetry(() => generatePentagramResult(parsed.data.promptText, parsed.data.files));
+    if (!result.trim()) throw new Error("empty result");
   } catch {
     return NextResponse.json(
       { error: "Не удалось получить ответ от Gemini. Попробуйте ещё раз." },
@@ -45,9 +57,11 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     );
   }
 
-  const updated: TutorCardJson = {
-    ...current,
-    transcript: [...history, { role: "model" as const, text: replyText }],
+  const updated: PentagramCardJson = {
+    promptText: parsed.data.promptText,
+    files: parsed.data.files,
+    result,
+    generated: true,
   };
 
   await prisma.card.update({
@@ -55,5 +69,5 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     data: { cardJson: updated as unknown as Prisma.InputJsonValue },
   });
 
-  return NextResponse.json({ transcript: updated.transcript });
+  return NextResponse.json({ result });
 }

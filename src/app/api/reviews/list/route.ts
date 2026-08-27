@@ -12,7 +12,11 @@ export async function GET() {
 
   const [cards, meGiven] = await Promise.all([
     prisma.card.findMany({
-      where: { status: "submitted", userId: { not: session.user.id }, kind: { not: "tutor_prompt" } },
+      where: {
+        status: "submitted",
+        userId: { not: session.user.id },
+        kind: { notIn: ["tutor_prompt", "pentagram_prompt"] },
+      },
       include: {
         module: true,
         _count: { select: { reviews: true } },

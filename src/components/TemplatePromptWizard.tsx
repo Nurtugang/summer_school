@@ -4,14 +4,22 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ErrorText } from "@/components/ui";
 
-export function TutorWizard({ moduleId }: { moduleId: string }) {
+export function TemplatePromptWizard({
+  moduleId,
+  createEndpoint,
+  loadingLabel,
+}: {
+  moduleId: string;
+  createEndpoint: string;
+  loadingLabel: string;
+}) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const res = await fetch("/api/tutor-prompts", {
+      const res = await fetch(createEndpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ moduleId }),
@@ -27,11 +35,11 @@ export function TutorWizard({ moduleId }: { moduleId: string }) {
     return () => {
       cancelled = true;
     };
-  }, [moduleId, router]);
+  }, [moduleId, createEndpoint, router]);
 
   return (
     <div className="flex flex-col gap-3">
-      <p className="text-[15px] text-muted">Готовим шаблон промпта…</p>
+      <p className="text-[15px] text-muted">{loadingLabel}</p>
       <ErrorText>{error}</ErrorText>
     </div>
   );

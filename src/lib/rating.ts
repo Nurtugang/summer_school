@@ -31,12 +31,15 @@ export function cardScore(reviews: ReviewLike[]): number | null {
   return median(reviews.map(reviewAverage));
 }
 
+const NO_REVIEW_KINDS = ["tutor_prompt", "pentagram_prompt"];
+
 /**
- * Балл работы (1–5) с учётом задания М3 «Тьютор»: у него нет рецензии и ИИ не судья, поэтому
- * зачтённая (submitted) работа этого вида даёт фиксированный балл вместо медианы по рецензентам.
+ * Балл работы (1–5) с учётом заданий-тренажёров (М2 Pentagram, М3 Тьютор): у них нет рецензии
+ * и ИИ не судья, поэтому зачтённая (submitted) работа такого вида даёт фиксированный балл
+ * вместо медианы по рецензентам.
  */
 export function cardScoreForCard(kind: string, reviews: ReviewLike[]): number | null {
-  if (kind === "tutor_prompt") return TUTOR_PROMPT_FIXED_SCORE;
+  if (NO_REVIEW_KINDS.includes(kind)) return TUTOR_PROMPT_FIXED_SCORE;
   return cardScore(reviews);
 }
 

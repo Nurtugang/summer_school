@@ -36,3 +36,9 @@ export const QUIZ_MODULE_CONTEXT: Record<number, string> = {
 // Рецензии нет, ИИ не ставит балл — гейт локальный (см. lib/tutorPrompt.ts). Балл в
 // компоненте «работы» фиксированный за сам факт зачёта, чтобы модуль был симметричен М1/М2.
 export const TUTOR_PROMPT_FIXED_SCORE = 5;
+
+// --- Админка (/admin) — доступ только этим email, остальные получают 404 ---
+export const ADMIN_EMAILS = (process.env.ADMIN_EMAILS ?? "")
+  .split(",")
+  .map((e) => e.trim().toLowerCase())
+  .filter(Boolean);

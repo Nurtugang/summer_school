@@ -5,6 +5,8 @@ import { prisma } from "@/lib/prisma";
 import { MAX_REVIEWS_PER_USER } from "@/lib/config";
 import type { TriadJson, TaskSetJson } from "@/lib/gemini";
 
+const NO_REVIEW_KINDS = ["tutor_prompt", "pentagram_prompt"];
+
 export async function GET(_req: Request, { params }: { params: Promise<{ cardId: string }> }) {
   const { cardId } = await params;
   const session = await auth();
@@ -16,7 +18,12 @@ export async function GET(_req: Request, { params }: { params: Promise<{ cardId:
     where: { id: cardId },
     include: { _count: { select: { reviews: true } } },
   });
-  if (!card || card.status !== "submitted" || card.userId === session.user.id || card.kind === "tutor_prompt") {
+  if (
+    !card ||
+    card.status !== "submitted" ||
+    card.userId === session.user.id ||
+    NO_REVIEW_KINDS.includes(card.kind)
+  ) {
     return NextResponse.json({ error: "Карта недоступна" }, { status: 404 });
   }
 
@@ -48,7 +55,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ cardId:
   }
 
   const card = await prisma.card.findUnique({ where: { id: cardId } });
-  if (!card || card.status !== "submitted" || card.kind === "tutor_prompt") {
+  if (!card || card.status !== "submitted" || NO_REVIEW_KINDS.includes(card.kind)) {
     return NextResponse.json({ error: "Карта недоступна для рецензии" }, { status: 404 });
   }
   if (card.userId === session.user.id) {

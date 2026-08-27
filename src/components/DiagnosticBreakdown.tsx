@@ -49,6 +49,9 @@ export function DiagnosticBreakdown({
                   <p className="text-[14px] text-terracotta">Объяснение отправлено на ручную проверку</p>
                 ) : (
                   <div className="flex flex-col gap-1.5">
+                    {fix.fixText ? (
+                      <p className="border border-line bg-white/60 px-3 py-2 text-[14px] text-ink">{fix.fixText}</p>
+                    ) : null}
                     <p className="text-[14px] text-muted">
                       Баллы за объяснение: {fix.pointsEarned} из {fix.pointsMax}
                     </p>
