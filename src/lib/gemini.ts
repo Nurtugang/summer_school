@@ -1,5 +1,13 @@
 import { GoogleGenAI } from "@google/genai";
+import { setGlobalDispatcher, ProxyAgent } from "undici";
 import { GEMINI_MODEL } from "@/lib/config";
+
+// Gemini API геоблокирует запросы по IP сервера. Если сервер стоит в стране/датацентре,
+// который Google не пускает напрямую, задайте GEMINI_PROXY_URL (http(s)://user:pass@host:port) —
+// весь fetch-трафик этого процесса (используется только для вызовов к Gemini) пойдёт через прокси.
+if (process.env.GEMINI_PROXY_URL) {
+  setGlobalDispatcher(new ProxyAgent(process.env.GEMINI_PROXY_URL));
+}
 
 function stripCodeFences(text: string): string {
   const trimmed = text.trim();
