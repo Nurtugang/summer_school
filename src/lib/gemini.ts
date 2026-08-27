@@ -1,12 +1,37 @@
 import { GoogleGenAI } from "@google/genai";
+import type { GenerateContentParameters } from "@google/genai";
 import { setGlobalDispatcher, ProxyAgent } from "undici";
 import { GEMINI_MODEL } from "@/lib/config";
 
 // Gemini API геоблокирует запросы по IP сервера. Если сервер стоит в стране/датацентре,
-// который Google не пускает напрямую, задайте GEMINI_PROXY_URL (http(s)://user:pass@host:port) —
-// весь fetch-трафик этого процесса (используется только для вызовов к Gemini) пойдёт через прокси.
-if (process.env.GEMINI_PROXY_URL) {
-  setGlobalDispatcher(new ProxyAgent(process.env.GEMINI_PROXY_URL));
+// который Google не пускает напрямую, задайте GEMINI_PROXY_URLS — один или несколько
+// (через запятую) http(s)://user:pass@host:port прокси. При сетевой ошибке на одном прокси
+// код автоматически пробует следующий из списка (см. generateContentWithProxyRotation).
+const GEMINI_PROXY_URLS = (process.env.GEMINI_PROXY_URLS ?? "")
+  .split(",")
+  .map((s) => s.trim())
+  .filter(Boolean);
+
+async function generateContentWithProxyRotation(
+  apiKey: string,
+  params: GenerateContentParameters
+) {
+  if (GEMINI_PROXY_URLS.length === 0) {
+    const ai = new GoogleGenAI({ apiKey });
+    return ai.models.generateContent(params);
+  }
+
+  let lastErr: unknown;
+  for (const proxyUrl of GEMINI_PROXY_URLS) {
+    setGlobalDispatcher(new ProxyAgent(proxyUrl));
+    try {
+      const ai = new GoogleGenAI({ apiKey });
+      return await ai.models.generateContent(params);
+    } catch (err) {
+      lastErr = err;
+    }
+  }
+  throw lastErr;
 }
 
 function stripCodeFences(text: string): string {
@@ -27,9 +52,7 @@ async function callGeminiJson(prompt: string, temperature?: number): Promise<str
     throw new Error("GEMINI_API_KEY не задан");
   }
 
-  const ai = new GoogleGenAI({ apiKey });
-
-  const response = await ai.models.generateContent({
+  const response = await generateContentWithProxyRotation(apiKey, {
     model: GEMINI_MODEL,
     contents: prompt,
     config: {
@@ -680,9 +703,7 @@ export async function tutorReply(systemPrompt: string, history: TutorTurn[]): Pr
     throw new Error("GEMINI_API_KEY не задан");
   }
 
-  const ai = new GoogleGenAI({ apiKey });
-
-  const response = await ai.models.generateContent({
+  const response = await generateContentWithProxyRotation(apiKey, {
     model: GEMINI_MODEL,
     contents: history.map((t) => ({ role: t.role, parts: [{ text: t.text }] })),
     config: {
