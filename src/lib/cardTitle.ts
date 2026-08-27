@@ -5,8 +5,8 @@ export function titleForCard(kind: string, cardJson: unknown): string {
     const t = cardJson as TaskSetJson;
     return t.pentagram?.context ? `Комплект заданий: ${t.pentagram.context}` : "Комплект заданий";
   }
-  if (kind === "tutor_prompt") {
-    return "Тьютор для домашней подготовки";
+  if (kind === "case_prompt") {
+    return "Сборка кейса";
   }
   if (kind === "pentagram_prompt") {
     return "Pentagram-тренажёр";

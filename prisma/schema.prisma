@@ -42,7 +42,7 @@ model Module {
   hasTaskWizard   Boolean             @default(false) // комплект заданий (Модуль 2, старая версия — скрыта админ-флагом)
   hasPentagramWizard Boolean          @default(false) // Pentagram-тренажёр (Модуль 2, новая версия)
   hasDiagnostic   Boolean             @default(true)  // диагностика резистентности — переключаемо из админки
-  hasTutorWizard  Boolean             @default(false) // тьютор-промпт (Модуль 3)
+  hasCaseWizard   Boolean             @default(false) // сборка кейса для дебатов (Модуль 3)
   cards           Card[]
   questions       Question[]
   attempts        QuizAttempt[]
@@ -58,7 +58,7 @@ model Card {
   userId        String
   module        Module   @relation(fields: [moduleId], references: [id])
   moduleId      String
-  kind          String   @default("alignment_card") // "alignment_card" | "task_set" | "pentagram_prompt" | "tutor_prompt"
+  kind          String   @default("alignment_card") // "alignment_card" | "task_set" | "pentagram_prompt" | "case_prompt"
   contextJson   Json
   draftJson     Json     // неизменный ИИ-черновик (для сравнения с правками человека)
   cardJson      Json     // редактируемая версия

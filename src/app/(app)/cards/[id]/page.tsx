@@ -7,7 +7,7 @@ import { TriadEditor } from "@/components/TriadEditor";
 import { TaskSetEditor } from "@/components/TaskSetEditor";
 import { TemplatePromptEditor } from "@/components/TemplatePromptEditor";
 import { normalizeTaskSet } from "@/lib/taskSetFlow";
-import { TUTOR_PLACEHOLDERS, TUTOR_PLACEHOLDER_HINTS, type TutorCardJson } from "@/lib/tutorPrompt";
+import { CASE_PLACEHOLDERS, CASE_PLACEHOLDER_HINTS, type CaseCardJson } from "@/lib/caseAssemblyPrompt";
 import {
   PENTAGRAM_PLACEHOLDERS,
   PENTAGRAM_PLACEHOLDER_HINTS,
@@ -16,10 +16,10 @@ import {
 import type { CardCritique, TriadJson } from "@/lib/gemini";
 import { dayLabel } from "@/lib/dayLabel";
 
-const TUTOR_INTRO = [
-  "Это готовый промпт-тьютор для домашней подготовки студентов к перевёрнутому занятию (flipped classroom) — на основе AI-Tutor из Mollick & Mollick. Идея в сократовском методе: тьютор НЕ даёт студенту готовых ответов, а ведёт наводящими вопросами, пока студент не поймёт сам.",
-  "Ниже — рабочий шаблон с плейсхолдерами в квадратных скобках. Замените их на свои — под конкретное занятие, тему и уровень студентов.",
-  "Порядок: замените плейсхолдеры → при желании приложите файлы (материалы занятия) → «Проверить» — промпт реально уйдёт в Gemini, которая сыграет короткий пример диалога тьютора со студентом целиком (включая финальный «входной билет»), чтобы вы увидели, что тьютор ведёт вопросами, а не отвечает → «Готово» → скопируйте или скачайте промпт и отдайте студентам.",
+const CASE_INTRO = [
+  "Инструмент «Сборка кейса» собирает за один запуск комплект материалов для дебатов/группового обсуждения на занятии: реальное спорное противоречие по вашей теме, вводный текст-кейс и два хендаута с фактами — за позицию и против.",
+  "Ниже — рабочий шаблон с плейсхолдерами в квадратных скобках. Замените их на свои — дисциплину, курс, тему и то, чему студенты должны научиться.",
+  "Порядок: замените плейсхолдеры → при желании приложите файлы (материалы занятия) → «Сгенерировать» — промпт реально уйдёт в Gemini и вернёт готовый комплект (противоречие → кейс → pro-хендаут → con-хендаут) → «Готово».",
 ];
 
 const PENTAGRAM_INTRO = [
@@ -40,25 +40,25 @@ export default async function CardPage({ params }: { params: Promise<{ id: strin
   if (!card || card.userId !== session.user.id) notFound();
 
   const isTaskSet = card.kind === "task_set";
-  const isTutorPrompt = card.kind === "tutor_prompt";
+  const isCasePrompt = card.kind === "case_prompt";
   const isPentagramPrompt = card.kind === "pentagram_prompt";
   const title = isTaskSet
     ? "Комплект заданий"
-    : isTutorPrompt
-      ? "Тьютор для домашней подготовки"
+    : isCasePrompt
+      ? "Сборка кейса"
       : isPentagramPrompt
         ? "Pentagram-тренажёр"
         : (card.cardJson as unknown as TriadJson).header.topic || "Занятие";
   const critique = card.critiqueJson as unknown as CardCritique | null;
   const breadcrumbLabel = isTaskSet
     ? "Комплект заданий"
-    : isTutorPrompt
-      ? "Тьютор"
+    : isCasePrompt
+      ? "Сборка кейса"
       : isPentagramPrompt
         ? "Pentagram"
         : "Занятие";
   const statusLabel =
-    card.status === "draft" ? "Черновик" : isTutorPrompt || isPentagramPrompt ? "Готово" : "Отправлена на рецензию";
+    card.status === "draft" ? "Черновик" : isCasePrompt || isPentagramPrompt ? "Готово" : "Отправлена на рецензию";
 
   return (
     <div className="flex flex-col gap-6">
@@ -85,21 +85,21 @@ export default async function CardPage({ params }: { params: Promise<{ id: strin
           status={card.status}
           reviewCount={card._count.reviews}
         />
-      ) : isTutorPrompt ? (
+      ) : isCasePrompt ? (
         <TemplatePromptEditor
           cardId={card.id}
           moduleId={card.module.id}
           status={card.status}
-          initialCard={card.cardJson as unknown as TutorCardJson}
-          placeholders={TUTOR_PLACEHOLDERS}
-          placeholderHints={TUTOR_PLACEHOLDER_HINTS}
-          generateEndpoint={`/api/cards/${card.id}/tutor-generate`}
-          generateButtonLabel="Проверить"
-          generatingLabel="Проверяем…"
-          resultLabel="Пример диалога с тьютором"
+          initialCard={card.cardJson as unknown as CaseCardJson}
+          placeholders={CASE_PLACEHOLDERS}
+          placeholderHints={CASE_PLACEHOLDER_HINTS}
+          generateEndpoint={`/api/cards/${card.id}/case-generate`}
+          generateButtonLabel="Сгенерировать"
+          generatingLabel="Генерируем…"
+          resultLabel="Комплект материалов"
           introTitle="Что это и зачем"
-          introBody={TUTOR_INTRO}
-          downloadFileName="tutor-prompt.txt"
+          introBody={CASE_INTRO}
+          downloadFileName="case-prompt.txt"
         />
       ) : isPentagramPrompt ? (
         <TemplatePromptEditor

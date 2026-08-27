@@ -1,7 +1,7 @@
 import {
   MAX_REVIEWS_PER_USER,
+  NO_REVIEW_FIXED_SCORE,
   OPEN_QUESTIONS_COUNT_IN_RATING,
-  TUTOR_PROMPT_FIXED_SCORE,
   W_CARD,
   W_QUIZ,
   W_REVIEW_BONUS,
@@ -31,15 +31,15 @@ export function cardScore(reviews: ReviewLike[]): number | null {
   return median(reviews.map(reviewAverage));
 }
 
-const NO_REVIEW_KINDS = ["tutor_prompt", "pentagram_prompt"];
+const NO_REVIEW_KINDS = ["case_prompt", "pentagram_prompt"];
 
 /**
- * Балл работы (1–5) с учётом заданий-тренажёров (М2 Pentagram, М3 Тьютор): у них нет рецензии
- * и ИИ не судья, поэтому зачтённая (submitted) работа такого вида даёт фиксированный балл
- * вместо медианы по рецензентам.
+ * Балл работы (1–5) с учётом заданий-тренажёров (М2 Pentagram, М3 Сборка кейса): у них нет
+ * рецензии и ИИ не судья, поэтому зачтённая (submitted) работа такого вида даёт фиксированный
+ * балл вместо медианы по рецензентам.
  */
 export function cardScoreForCard(kind: string, reviews: ReviewLike[]): number | null {
-  if (NO_REVIEW_KINDS.includes(kind)) return TUTOR_PROMPT_FIXED_SCORE;
+  if (NO_REVIEW_KINDS.includes(kind)) return NO_REVIEW_FIXED_SCORE;
   return cardScore(reviews);
 }
 

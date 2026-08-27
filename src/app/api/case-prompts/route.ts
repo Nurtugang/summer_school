@@ -3,7 +3,7 @@ import { z } from "zod";
 import type { Prisma } from "@prisma/client";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { TUTOR_PROMPT_TEMPLATE, type TutorCardJson } from "@/lib/tutorPrompt";
+import { CASE_PROMPT_TEMPLATE, type CaseCardJson } from "@/lib/caseAssemblyPrompt";
 
 const schema = z.object({
   moduleId: z.string().min(1),
@@ -22,12 +22,12 @@ export async function POST(req: Request) {
   }
 
   const moduleRecord = await prisma.module.findUnique({ where: { id: parsed.data.moduleId } });
-  if (!moduleRecord || !moduleRecord.hasTutorWizard) {
+  if (!moduleRecord || !moduleRecord.hasCaseWizard) {
     return NextResponse.json({ error: "Модуль не поддерживает создание этого задания" }, { status: 400 });
   }
 
   const existing = await prisma.card.findUnique({
-    where: { userId_moduleId_kind: { userId: session.user.id, moduleId: moduleRecord.id, kind: "tutor_prompt" } },
+    where: { userId_moduleId_kind: { userId: session.user.id, moduleId: moduleRecord.id, kind: "case_prompt" } },
   });
   if (existing) {
     return NextResponse.json(
@@ -36,13 +36,13 @@ export async function POST(req: Request) {
     );
   }
 
-  const initial: TutorCardJson = { promptText: TUTOR_PROMPT_TEMPLATE, files: [], result: null, generated: false };
+  const initial: CaseCardJson = { promptText: CASE_PROMPT_TEMPLATE, files: [], result: null, generated: false };
 
   const card = await prisma.card.create({
     data: {
       userId: session.user.id,
       moduleId: moduleRecord.id,
-      kind: "tutor_prompt",
+      kind: "case_prompt",
       contextJson: {} as unknown as Prisma.InputJsonValue,
       draftJson: initial as unknown as Prisma.InputJsonValue,
       cardJson: initial as unknown as Prisma.InputJsonValue,

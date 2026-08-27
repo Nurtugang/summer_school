@@ -3,9 +3,9 @@ import { z } from "zod";
 import type { Prisma } from "@prisma/client";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { generateTutorOpening, GeminiResponseError } from "@/lib/gemini";
-import type { TutorCardJson } from "@/lib/tutorPrompt";
-import { remainingPlaceholders } from "@/lib/tutorPrompt";
+import { generateCaseAssemblyResult, GeminiResponseError } from "@/lib/gemini";
+import type { CaseCardJson } from "@/lib/caseAssemblyPrompt";
+import { remainingCasePlaceholders } from "@/lib/caseAssemblyPrompt";
 
 const fileSchema = z.object({ fileName: z.string(), text: z.string() });
 const schema = z.object({
@@ -30,7 +30,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   }
 
   const card = await prisma.card.findUnique({ where: { id } });
-  if (!card || card.userId !== session.user.id || card.kind !== "tutor_prompt") {
+  if (!card || card.userId !== session.user.id || card.kind !== "case_prompt") {
     return NextResponse.json({ error: "Задание не найдено" }, { status: 404 });
   }
   if (card.status !== "draft") {
@@ -42,13 +42,13 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   if (!parsed.success) {
     return NextResponse.json({ error: "Некорректные данные" }, { status: 400 });
   }
-  if (remainingPlaceholders(parsed.data.promptText).length > 0) {
-    return NextResponse.json({ error: "Замените все плейсхолдеры перед проверкой" }, { status: 400 });
+  if (remainingCasePlaceholders(parsed.data.promptText).length > 0) {
+    return NextResponse.json({ error: "Замените все плейсхолдеры перед генерацией" }, { status: 400 });
   }
 
   let result: string;
   try {
-    result = await withRetry(() => generateTutorOpening(parsed.data.promptText, parsed.data.files));
+    result = await withRetry(() => generateCaseAssemblyResult(parsed.data.promptText, parsed.data.files));
     if (!result.trim()) throw new Error("empty result");
   } catch {
     return NextResponse.json(
@@ -57,7 +57,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     );
   }
 
-  const updated: TutorCardJson = {
+  const updated: CaseCardJson = {
     promptText: parsed.data.promptText,
     files: parsed.data.files,
     result,

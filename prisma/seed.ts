@@ -71,7 +71,7 @@ async function main() {
       pdfUrl: "/presentations/module-3.pdf",
       hasWizard: false,
       hasTaskWizard: false,
-      hasTutorWizard: true,
+      hasCaseWizard: true,
     },
   ];
 
@@ -86,7 +86,7 @@ async function main() {
         hasTaskWizard: m.hasTaskWizard,
         hasPentagramWizard: m.hasPentagramWizard ?? false,
         hasDiagnostic: m.hasDiagnostic ?? true,
-        hasTutorWizard: m.hasTutorWizard ?? false,
+        hasCaseWizard: m.hasCaseWizard ?? false,
       },
       create: { ...m, dayId: day27.id },
     });

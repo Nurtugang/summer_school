@@ -63,7 +63,7 @@ export default async function ModulePage({ params }: { params: Promise<{ moduleI
 
   const existingAlignmentCard = myCards.find((c) => c.kind === "alignment_card");
   const existingTaskSet = myCards.find((c) => c.kind === "task_set");
-  const existingTutorPrompt = myCards.find((c) => c.kind === "tutor_prompt");
+  const existingCasePrompt = myCards.find((c) => c.kind === "case_prompt");
   const existingPentagramPrompt = myCards.find((c) => c.kind === "pentagram_prompt");
 
   const assignments: Assignment[] = [];
@@ -117,20 +117,20 @@ export default async function ModulePage({ params }: { params: Promise<{ moduleI
           }
     );
   }
-  if (moduleRecord.hasTutorWizard) {
+  if (moduleRecord.hasCaseWizard) {
     assignments.push(
-      existingTutorPrompt
+      existingCasePrompt
         ? {
-            title: "Тьютор для домашней подготовки",
+            title: "Сборка кейса",
             description: "Работа уже создана. Удалите её на странице работы, чтобы начать заново.",
-            href: `/cards/${existingTutorPrompt.id}`,
+            href: `/cards/${existingCasePrompt.id}`,
             buttonLabel: "Открыть работу",
           }
         : {
-            title: "Тьютор для домашней подготовки",
-            description: "Готовый шаблон промпта → вы правите плейсхолдеры → один раз проверяете его в Gemini.",
-            href: `/modules/${moduleRecord.id}/tutor-wizard`,
-            buttonLabel: "Создать тьютор-промпт",
+            title: "Сборка кейса",
+            description: "Готовый шаблон промпта → вы правите плейсхолдеры → один раз запускаете его в Gemini и получаете комплект материалов для дебатов на занятии.",
+            href: `/modules/${moduleRecord.id}/case-wizard`,
+            buttonLabel: "Создать промпт кейса",
           }
     );
   }
@@ -167,8 +167,8 @@ export default async function ModulePage({ params }: { params: Promise<{ moduleI
       valueLabel: diagnosticPercent !== null ? `${diagnosticPercent.toFixed(0)}%` : "не начата",
     });
   }
-  const noReviewKind = moduleRecord.hasTutorWizard || moduleRecord.hasPentagramWizard;
-  if (moduleRecord.hasWizard || moduleRecord.hasTaskWizard || moduleRecord.hasPentagramWizard || moduleRecord.hasTutorWizard) {
+  const noReviewKind = moduleRecord.hasCaseWizard || moduleRecord.hasPentagramWizard;
+  if (moduleRecord.hasWizard || moduleRecord.hasTaskWizard || moduleRecord.hasPentagramWizard || moduleRecord.hasCaseWizard) {
     const cardFill = cardStatus === "submitted" ? 100 : cardStatus === "draft" ? 50 : 0;
     const doneLabel = noReviewKind ? "готово" : "отправлена";
     const cardLabel = cardStatus === "submitted" ? doneLabel : cardStatus === "draft" ? "черновик" : "не начата";
@@ -176,8 +176,8 @@ export default async function ModulePage({ params }: { params: Promise<{ moduleI
       ? "Комплект заданий"
       : moduleRecord.hasPentagramWizard
         ? "Pentagram-тренажёр"
-        : moduleRecord.hasTutorWizard
-          ? "Тьютор"
+        : moduleRecord.hasCaseWizard
+          ? "Сборка кейса"
           : "Карта";
     progressRows.push({
       label: cardLabelTitle,

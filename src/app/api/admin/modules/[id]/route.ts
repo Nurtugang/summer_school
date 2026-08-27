@@ -4,7 +4,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { isAdminEmail } from "@/lib/isAdmin";
 
-const ALLOWED_FIELDS = ["hasTaskWizard", "hasPentagramWizard", "hasDiagnostic", "hasTutorWizard"] as const;
+const ALLOWED_FIELDS = ["hasTaskWizard", "hasPentagramWizard", "hasDiagnostic", "hasCaseWizard"] as const;
 
 const schema = z.object({
   field: z.enum(ALLOWED_FIELDS),

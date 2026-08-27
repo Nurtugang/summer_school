@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import type { TriadJson } from "@/lib/gemini";
 import { canSubmitTriad, triadFieldsFilled } from "@/lib/triad";
 import { canSubmitTaskSet, normalizeTaskSet } from "@/lib/taskSetFlow";
-import { canSubmitTutorPrompt, type TutorCardJson } from "@/lib/tutorPrompt";
+import { canSubmitCasePrompt, type CaseCardJson } from "@/lib/caseAssemblyPrompt";
 import { canSubmitPentagramPrompt, type PentagramCardJson } from "@/lib/pentagramPrompt";
 
 export async function POST(_req: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -33,11 +33,11 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
           : "Закалите вручную хотя бы одно задание уровня Анализ / Оценка / Создание";
       return NextResponse.json({ error: label }, { status: 400 });
     }
-  } else if (card.kind === "tutor_prompt") {
-    const tutor = card.cardJson as unknown as TutorCardJson;
-    if (!canSubmitTutorPrompt(tutor)) {
+  } else if (card.kind === "case_prompt") {
+    const caseCard = card.cardJson as unknown as CaseCardJson;
+    if (!canSubmitCasePrompt(caseCard)) {
       return NextResponse.json(
-        { error: "Замените все плейсхолдеры и хотя бы раз нажмите «Проверить»" },
+        { error: "Замените все плейсхолдеры и хотя бы раз нажмите «Сгенерировать»" },
         { status: 400 }
       );
     }
