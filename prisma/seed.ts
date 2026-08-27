@@ -30,7 +30,7 @@ async function seedQuestions(moduleId: string, questions: SeedQuestion[]) {
 }
 
 async function main() {
-  await prisma.day.upsert({
+  const day26 = await prisma.day.upsert({
     where: { number: 26 },
     update: {},
     create: { number: 26 },
@@ -87,6 +87,28 @@ async function main() {
       create: { ...m, dayId: day27.id },
     });
     savedModules[m.order] = saved;
+  }
+
+  const day26Modules = [
+    { order: 1, title: "Ethics First", pdfUrl: "/presentations/day26-session-1.pdf" },
+    { order: 2, title: "Responsible AI", pdfUrl: "/presentations/day26-session-2.pdf" },
+    {
+      order: 3,
+      title: "Академиялық адалдық Generative AI дәуірінде",
+      pdfUrl: "/presentations/day26-session-3.pdf",
+    },
+    {
+      order: 4,
+      title: "AI Policy: университеттің институционалдық қағидалары",
+      pdfUrl: "/presentations/day26-session-4.pdf",
+    },
+  ];
+  for (const m of day26Modules) {
+    await prisma.module.upsert({
+      where: { dayId_order: { dayId: day26.id, order: m.order } },
+      update: { title: m.title, pdfUrl: m.pdfUrl },
+      create: { ...m, dayId: day26.id },
+    });
   }
 
   await seedQuestions(savedModules[1].id, MODULE1_QUESTIONS);
