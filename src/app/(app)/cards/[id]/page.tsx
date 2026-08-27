@@ -6,6 +6,7 @@ import { Eyebrow } from "@/components/ui";
 import { TriadEditor } from "@/components/TriadEditor";
 import { TaskSetEditor } from "@/components/TaskSetEditor";
 import { TemplatePromptEditor } from "@/components/TemplatePromptEditor";
+import { NotebookLogEditor } from "@/components/NotebookLogEditor";
 import { normalizeTaskSet } from "@/lib/taskSetFlow";
 import { CASE_PLACEHOLDERS, CASE_PLACEHOLDER_HINTS, type CaseCardJson } from "@/lib/caseAssemblyPrompt";
 import {
@@ -13,6 +14,8 @@ import {
   PENTAGRAM_PLACEHOLDER_HINTS,
   type PentagramCardJson,
 } from "@/lib/pentagramPrompt";
+import { NOTEBOOK_MODULE_SPECS } from "@/lib/notebookPrompts";
+import type { NotebookCardJson } from "@/lib/notebookLog";
 import type { CardCritique, TriadJson } from "@/lib/gemini";
 import { dayLabel } from "@/lib/dayLabel";
 
@@ -42,13 +45,16 @@ export default async function CardPage({ params }: { params: Promise<{ id: strin
   const isTaskSet = card.kind === "task_set";
   const isCasePrompt = card.kind === "case_prompt";
   const isPentagramPrompt = card.kind === "pentagram_prompt";
+  const isNotebookLog = card.kind === "notebook_log";
   const title = isTaskSet
     ? "Комплект заданий"
     : isCasePrompt
       ? "Сборка кейса"
       : isPentagramPrompt
         ? "Pentagram-тренажёр"
-        : (card.cardJson as unknown as TriadJson).header.topic || "Занятие";
+        : isNotebookLog
+          ? "Работа с NotebookLM"
+          : (card.cardJson as unknown as TriadJson).header.topic || "Занятие";
   const critique = card.critiqueJson as unknown as CardCritique | null;
   const breadcrumbLabel = isTaskSet
     ? "Комплект заданий"
@@ -56,9 +62,11 @@ export default async function CardPage({ params }: { params: Promise<{ id: strin
       ? "Сборка кейса"
       : isPentagramPrompt
         ? "Pentagram"
-        : "Занятие";
-  const statusLabel =
-    card.status === "draft" ? "Черновик" : isCasePrompt || isPentagramPrompt ? "Готово" : "Отправлена на рецензию";
+        : isNotebookLog
+          ? "NotebookLM"
+          : "Занятие";
+  const noReviewSubmitted = isCasePrompt || isPentagramPrompt || isNotebookLog;
+  const statusLabel = card.status === "draft" ? "Черновик" : noReviewSubmitted ? "Готово" : "Отправлена на рецензию";
 
   return (
     <div className="flex flex-col gap-6">
@@ -116,6 +124,15 @@ export default async function CardPage({ params }: { params: Promise<{ id: strin
           introTitle="Что это и зачем"
           introBody={PENTAGRAM_INTRO}
           downloadFileName="pentagram-prompt.txt"
+        />
+      ) : isNotebookLog ? (
+        <NotebookLogEditor
+          cardId={card.id}
+          moduleId={card.module.id}
+          status={card.status}
+          initialCard={card.cardJson as unknown as NotebookCardJson}
+          introLines={NOTEBOOK_MODULE_SPECS[card.module.order]?.intro ?? []}
+          examples={(NOTEBOOK_MODULE_SPECS[card.module.order]?.prompts ?? []).map((p) => p.example)}
         />
       ) : (
         <TriadEditor

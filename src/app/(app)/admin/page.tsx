@@ -10,6 +10,7 @@ const TOGGLES = [
   { key: "hasPentagramWizard" as const, label: "Pentagram-тренажёр (М2)" },
   { key: "hasDiagnostic" as const, label: "Диагностика резистентности" },
   { key: "hasCaseWizard" as const, label: "Сборка кейса (М3)" },
+  { key: "hasNotebookWizard" as const, label: "Работа с NotebookLM (день 28)" },
 ];
 
 export default async function AdminPage() {

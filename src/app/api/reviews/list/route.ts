@@ -15,7 +15,7 @@ export async function GET() {
       where: {
         status: "submitted",
         userId: { not: session.user.id },
-        kind: { notIn: ["case_prompt", "pentagram_prompt"] },
+        kind: { notIn: ["case_prompt", "pentagram_prompt", "notebook_log"] },
       },
       include: {
         module: true,

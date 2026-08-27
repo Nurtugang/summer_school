@@ -42,7 +42,7 @@ async function main() {
     create: { number: 27 },
   });
 
-  await prisma.day.upsert({
+  const day28 = await prisma.day.upsert({
     where: { number: 28 },
     update: {},
     create: { number: 28 },
@@ -112,6 +112,31 @@ async function main() {
       where: { dayId_order: { dayId: day26.id, order: m.order } },
       update: { title: m.title, pdfUrl: m.pdfUrl },
       create: { ...m, dayId: day26.id },
+    });
+  }
+
+  const day28Modules = [
+    {
+      order: 1,
+      title: "Оценивание результатов обучения в эпоху Generative AI",
+      pdfUrl: "/presentations/day28-module-1.pdf",
+    },
+    {
+      order: 2,
+      title: "Формирующее оценивание, обратная связь и рубрики с использованием AI",
+      pdfUrl: "/presentations/day28-module-2.pdf",
+    },
+    {
+      order: 3,
+      title: "AI-инструменты для научных исследований и академического письма",
+      pdfUrl: "/presentations/day28-module-3.pdf",
+    },
+  ];
+  for (const m of day28Modules) {
+    await prisma.module.upsert({
+      where: { dayId_order: { dayId: day28.id, order: m.order } },
+      update: { title: m.title, pdfUrl: m.pdfUrl, hasNotebookWizard: true },
+      create: { ...m, dayId: day28.id, hasNotebookWizard: true },
     });
   }
 

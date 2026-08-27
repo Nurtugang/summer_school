@@ -3,7 +3,12 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
-export type ToggleField = "hasTaskWizard" | "hasPentagramWizard" | "hasDiagnostic" | "hasCaseWizard";
+export type ToggleField =
+  | "hasTaskWizard"
+  | "hasPentagramWizard"
+  | "hasDiagnostic"
+  | "hasCaseWizard"
+  | "hasNotebookWizard";
 
 export function AdminModuleToggle({
   moduleId,

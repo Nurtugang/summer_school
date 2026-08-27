@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { Eyebrow } from "@/components/ui";
+import { Button, Eyebrow } from "@/components/ui";
 import { titleForCard } from "@/lib/cardTitle";
 
 export default async function MyCardsPage() {
@@ -15,11 +15,20 @@ export default async function MyCardsPage() {
     orderBy: { updatedAt: "desc" },
   });
 
+  const hasPortfolioEntries = cards.some((c) => c.kind === "notebook_log");
+
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <Eyebrow>Мои материалы</Eyebrow>
-        <h1 className="text-[32px] leading-tight font-heading font-bold text-ink">Мои работы</h1>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <Eyebrow>Мои материалы</Eyebrow>
+          <h1 className="text-[32px] leading-tight font-heading font-bold text-ink">Мои работы</h1>
+        </div>
+        {hasPortfolioEntries ? (
+          <Link href="/portfolio">
+            <Button variant="secondary">AI-портфолио</Button>
+          </Link>
+        ) : null}
       </div>
 
       {cards.length === 0 ? (

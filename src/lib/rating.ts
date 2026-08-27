@@ -31,7 +31,7 @@ export function cardScore(reviews: ReviewLike[]): number | null {
   return median(reviews.map(reviewAverage));
 }
 
-const NO_REVIEW_KINDS = ["case_prompt", "pentagram_prompt"];
+const NO_REVIEW_KINDS = ["case_prompt", "pentagram_prompt", "notebook_log"];
 
 /**
  * Балл работы (1–5) с учётом заданий-тренажёров (М2 Pentagram, М3 Сборка кейса): у них нет

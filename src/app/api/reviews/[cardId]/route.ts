@@ -5,7 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { MAX_REVIEWS_PER_USER } from "@/lib/config";
 import type { TriadJson, TaskSetJson } from "@/lib/gemini";
 
-const NO_REVIEW_KINDS = ["case_prompt", "pentagram_prompt"];
+const NO_REVIEW_KINDS = ["case_prompt", "pentagram_prompt", "notebook_log"];
 
 export async function GET(_req: Request, { params }: { params: Promise<{ cardId: string }> }) {
   const { cardId } = await params;

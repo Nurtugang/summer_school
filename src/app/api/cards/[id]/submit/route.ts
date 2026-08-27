@@ -6,6 +6,7 @@ import { canSubmitTriad, triadFieldsFilled } from "@/lib/triad";
 import { canSubmitTaskSet, normalizeTaskSet } from "@/lib/taskSetFlow";
 import { canSubmitCasePrompt, type CaseCardJson } from "@/lib/caseAssemblyPrompt";
 import { canSubmitPentagramPrompt, type PentagramCardJson } from "@/lib/pentagramPrompt";
+import { canSubmitNotebookLog, type NotebookCardJson } from "@/lib/notebookLog";
 
 export async function POST(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -46,6 +47,14 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
     if (!canSubmitPentagramPrompt(pentagram)) {
       return NextResponse.json(
         { error: "Замените все плейсхолдеры и хотя бы раз нажмите «Сгенерировать»" },
+        { status: 400 }
+      );
+    }
+  } else if (card.kind === "notebook_log") {
+    const notebook = card.cardJson as unknown as NotebookCardJson;
+    if (!canSubmitNotebookLog(notebook)) {
+      return NextResponse.json(
+        { error: "Замените все плейсхолдеры и заполните, что получили от NotebookLM, по каждому промпту" },
         { status: 400 }
       );
     }

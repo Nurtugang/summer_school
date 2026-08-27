@@ -11,6 +11,9 @@ export function titleForCard(kind: string, cardJson: unknown): string {
   if (kind === "pentagram_prompt") {
     return "Pentagram-тренажёр";
   }
+  if (kind === "notebook_log") {
+    return "Работа с NotebookLM";
+  }
   const p = cardJson as TriadJson;
   return p.header?.topic || "План занятия";
 }

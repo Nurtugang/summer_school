@@ -65,6 +65,7 @@ export default async function ModulePage({ params }: { params: Promise<{ moduleI
   const existingTaskSet = myCards.find((c) => c.kind === "task_set");
   const existingCasePrompt = myCards.find((c) => c.kind === "case_prompt");
   const existingPentagramPrompt = myCards.find((c) => c.kind === "pentagram_prompt");
+  const existingNotebookLog = myCards.find((c) => c.kind === "notebook_log");
 
   const assignments: Assignment[] = [];
   if (questionCount > 0) {
@@ -151,6 +152,23 @@ export default async function ModulePage({ params }: { params: Promise<{ moduleI
           }
     );
   }
+  if (moduleRecord.hasNotebookWizard) {
+    assignments.push(
+      existingNotebookLog
+        ? {
+            title: "Работа с NotebookLM",
+            description: "Работа уже создана. Удалите её на странице работы, чтобы начать заново.",
+            href: `/cards/${existingNotebookLog.id}`,
+            buttonLabel: "Открыть работу",
+          }
+        : {
+            title: "Работа с NotebookLM",
+            description: "Готовые промпты с плейсхолдерами → вставляете под своё занятие в NotebookLM → сохраняете, что получили. Без рецензии — фиксированный балл за факт выполнения.",
+            href: `/modules/${moduleRecord.id}/notebook-wizard`,
+            buttonLabel: "Начать",
+          }
+    );
+  }
 
   const progressRows: ModuleProgressRow[] = [];
   if (questionCount > 0) {
@@ -167,8 +185,14 @@ export default async function ModulePage({ params }: { params: Promise<{ moduleI
       valueLabel: diagnosticPercent !== null ? `${diagnosticPercent.toFixed(0)}%` : "не начата",
     });
   }
-  const noReviewKind = moduleRecord.hasCaseWizard || moduleRecord.hasPentagramWizard;
-  if (moduleRecord.hasWizard || moduleRecord.hasTaskWizard || moduleRecord.hasPentagramWizard || moduleRecord.hasCaseWizard) {
+  const noReviewKind = moduleRecord.hasCaseWizard || moduleRecord.hasPentagramWizard || moduleRecord.hasNotebookWizard;
+  if (
+    moduleRecord.hasWizard ||
+    moduleRecord.hasTaskWizard ||
+    moduleRecord.hasPentagramWizard ||
+    moduleRecord.hasCaseWizard ||
+    moduleRecord.hasNotebookWizard
+  ) {
     const cardFill = cardStatus === "submitted" ? 100 : cardStatus === "draft" ? 50 : 0;
     const doneLabel = noReviewKind ? "готово" : "отправлена";
     const cardLabel = cardStatus === "submitted" ? doneLabel : cardStatus === "draft" ? "черновик" : "не начата";
@@ -178,7 +202,9 @@ export default async function ModulePage({ params }: { params: Promise<{ moduleI
         ? "Pentagram-тренажёр"
         : moduleRecord.hasCaseWizard
           ? "Сборка кейса"
-          : "Карта";
+          : moduleRecord.hasNotebookWizard
+            ? "NotebookLM"
+            : "Карта";
     progressRows.push({
       label: cardLabelTitle,
       fillPercent: cardFill,
